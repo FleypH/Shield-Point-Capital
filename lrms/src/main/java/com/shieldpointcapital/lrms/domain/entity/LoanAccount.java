@@ -126,6 +126,6 @@ public class LoanAccount {
             updatable = false)
     private String createdBy;
 
-    @Column(name = "last_updated", nullable = false)
+    @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
 }
