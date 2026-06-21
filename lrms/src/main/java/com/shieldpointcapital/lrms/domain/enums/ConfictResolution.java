@@ -1,4 +1,4 @@
-package com.shieldpointcapital.lrms.domain.entity.enums;
+package com.shieldpointcapital.lrms.domain.enums;
 
 public enum ConfictResolution {
     CLIENT_WINS,
