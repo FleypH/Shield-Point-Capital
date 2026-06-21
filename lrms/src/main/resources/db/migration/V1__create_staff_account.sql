@@ -1,3 +1,6 @@
+-- Creates the staff_account table
+-- Referenced by: loan_account, staff_audit_log, loan_status_history
+-- NOTE: FK on loan_account_id added in V10__add_foreign_keys.sql
 CREATE TABLE staff_account (
     -- Primary identification
     staff_id VARCHAR(20) NOT NULL,
