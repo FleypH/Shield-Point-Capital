@@ -23,8 +23,14 @@ CREATE INDEX idx_loan_account_officer
     ON loan_account(assigned_officer_id);
 
 -- user_info indexes
-CREATE INDEX idx_user_info_full_name
-    ON user_info(full_name);
+CREATE INDEX idx_user_info_id_number
+    ON user_info(id_number); 
+
+CREATE INDEX idx_user_info_first_name
+    ON user_info(first_name);
+
+CREATE INDEX idx_user_info_last_name
+    ON user_info(last_name);
 
 -- loan_tracking indexes
 CREATE INDEX idx_loan_tracking_id_number

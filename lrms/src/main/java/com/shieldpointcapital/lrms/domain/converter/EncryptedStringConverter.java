@@ -1,7 +1,5 @@
 package com.shieldpointcapital.lrms.domain.converter;
 
-import com.shieldpointcapital.lrms.security.AesEncryption;
-
 import jakarta.persistence.*;
 @Converter
 public class EncryptedStringConverter

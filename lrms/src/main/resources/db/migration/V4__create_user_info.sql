@@ -10,9 +10,10 @@
 CREATE TABLE user_info (
 
     -- Primary identification
-    id_number       VARCHAR(20)     NOT NULL,
-    full_name       VARCHAR(100)    NOT NULL,
-    phone           VARCHAR(20)     NULL,
+    id_number       VARCHAR(255)     NOT NULL,
+    first_name       VARCHAR(100)    NOT NULL,
+    last_name       VARCHAR(100)    NOT NULL,
+    phone           VARCHAR(255)     NULL,
     address         TEXT            NULL,
 
     -- Audit

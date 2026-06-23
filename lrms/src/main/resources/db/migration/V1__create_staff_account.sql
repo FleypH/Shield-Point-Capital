@@ -4,7 +4,7 @@
 CREATE TABLE staff_account (
     -- Primary identification
     staff_id VARCHAR(20) NOT NULL,
-    national_id VARCHAR(20) NOT NULL,
+    national_id VARCHAR(255) NOT NULL,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     date_of_birth DATE NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE staff_account (
 
     -- Contact & login
     email VARCHAR(150) NOT NULL,
-    phone_number VARCHAR(20) NOT NULL,
+    phone_number VARCHAR(255) NOT NULL,
     job_title VARCHAR(50) NOT NULL,
     role ENUM('ADMIN', 'MANAGER', 'LOAN_OFFICER', 'ACCOUNTANT') NOT NULL,
 

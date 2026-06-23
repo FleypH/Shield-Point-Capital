@@ -18,11 +18,15 @@ public class UserInfo {
     // ─── Primary identification ──────────────────────────────────
 
     @Id
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(name = "id_number", nullable = false, length = 20)
     private String idNumber;
 
-    @Column(name = "full_name", nullable = false, length = 100)
-    private String fullName;
+    @Column(name = "first_name", nullable = false )
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false )
+    private String lastName;
 
     @Convert(converter = EncryptedStringConverter.class)
     @Column(name = "phone", length = 20)
