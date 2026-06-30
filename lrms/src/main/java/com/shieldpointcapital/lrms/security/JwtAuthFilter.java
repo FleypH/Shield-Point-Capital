@@ -80,6 +80,11 @@ public class JwtAuthFilter extends OncePerRequestFilter{
 
             //step 7 check token version
             //this is how we invalidate tokens after logout or password reset without maintaing a blacklist
+            if (tokenVersion == null || tokenVersion == 0) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Invalid token version");
+                return;
+            }
             if (!tokenVersion.equals(staff.getTokenVersion())){
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Session expired. please login again");
