@@ -80,7 +80,8 @@ public class JwtAuthFilter extends OncePerRequestFilter{
 
             //step 7 check token version
             //this is how we invalidate tokens after logout or password reset without maintaing a blacklist
-            if (tokenVersion == null || tokenVersion == 0) {
+            //this is a feature that checks if the tokenVersion is not null 
+            if (tokenVersion == null ) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Invalid token version");
                 return;
@@ -99,7 +100,7 @@ public class JwtAuthFilter extends OncePerRequestFilter{
             }
             //step 10 all checks passed
             // tell spring security who this person is
-            // this is calles "setting the authentication context"
+            // this is called "setting the authentication context"
             // every subsequent piece of code in this request can now call SecurityContextHolder.getContext().setAuthentication(authentication);
             //to know who is making the request
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

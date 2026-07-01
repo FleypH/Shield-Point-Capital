@@ -27,7 +27,7 @@ public class SecurityConfig {
 
     // password encoder
     // BCrypt is the hashing algorithm for passwords
-    //whens staff logs in, BCrypt hashes tje provided password
+    //whens staff logs in, BCrypt hashes the provided password
     //and compares it to the stored hash - never decrypts the password
 
     @Bean
@@ -39,7 +39,7 @@ public class SecurityConfig {
 
     //connects spring Security to our CustomerUserDetailsService
     //and our BCrypt password encoder
-    // spring uses this to vrify login credentials
+    // spring uses this to verify login credentials
 
     @Bean
     public AuthenticationProvider authenticationProvider(){
@@ -61,7 +61,7 @@ public class SecurityConfig {
 
     // security filter chain
 
-    // the main securith rulebook
+    // the main security rulebook
     // defines which endpoints need authentication and which do not
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
