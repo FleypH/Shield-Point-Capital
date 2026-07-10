@@ -16,7 +16,7 @@ import com.shieldpointcapital.lrms.domain.enums.Role;
  * password is plain text here — hash with BCrypt in the service layer,
  * never persist this record directly.
  */
-public record Createstaffrequest(
+public record CreateStaffrequest(
     @NotBlank(message = "national ID required")
     @Pattern(regexp = "^\\d{2}-\\d{6,7}[A-Z]\\d{2}$", message = "National ID must match Zimbabwe format e.g. 63-123456N71")
     String nationalId,
