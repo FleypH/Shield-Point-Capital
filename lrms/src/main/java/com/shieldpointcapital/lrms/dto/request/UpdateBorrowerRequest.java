@@ -3,7 +3,7 @@ package com.shieldpointcapital.lrms.dto.request;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record UpdateBorrower(
+public record UpdateBorrowerRequest(
     @Pattern(regexp = "^\\d{2}-\\d{6,7}[A-Z]\\d{2}$", message = "National ID must match Zimbabwe format e.g. 63-123456N71")
     String  borrowerId,
 
