@@ -1,0 +1,35 @@
+feat(dto): add request DTOs for loan operations, capital, and offline sync
+
+Loan lifecycle:
+- WriteOffLoanRequest — trackingId + reason, writtenOffBy from JWT
+- RestructureLoanRequest — trackingId, newMaturityDate, reason;
+  recalculated fields (balance, totalAmountDue, etc.) excluded
+- RecordPaymentRequest — trackingId, amountPaid (BigDecimal),
+  paymentDate, paymentMethod, paymentReference
+
+Capital management:
+- InjectCapitalRequest — amount, source, optional occurredAt
+  (device timestamp offline, server time online)
+- AllocateCapitalRequest — amount, occurredAt, remarks;
+  loanAccountId sourced from URL path, not body
+- CreateLoanAccountRequest — accountName only; capital and
+  officer assignment handled by dedicated endpoints
+
+Offline sync:
+- SyncPayload — localId, entityType, flexible data map, occurredAt
+- SyncPushRequest — list of SyncPayload, deviceId/staffId from JWT
+- DeviceRegistrationRequest — deviceId, deviceName, platform
+- ConflictResolutionRequest — conflictId, resolution, nullable
+  resolvedData (required only when resolution == MANUAL)
+
+Auth:
+- LoginRequest — staffId, password
+- AuthResponse — staffId, role, token, firstName, lastName, expiresAt
+
+New enums: PaymentMethod, DevicePlatform, EntityType
+
+All actor-identity fields (writtenOffBy, recordedBy, staffId,
+deviceId) are deliberately excluded from request bodies and
+resolved server-side from JWT claims. Server-computed/derived
+fields (balances, counts, revenue metrics) excluded from create/
+update requests per the same pattern.
