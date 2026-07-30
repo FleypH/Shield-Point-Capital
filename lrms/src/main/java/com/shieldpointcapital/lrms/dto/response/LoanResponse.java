@@ -8,9 +8,10 @@ import java.time.LocalDate;
 public record LoanResponse(
 
         Long trackingId,
-        String borrowerName,     // resolved by the service via a second UserInfo lookup
-        String loanAccountId,
+        String borrowerName,     // concatenated firstName + lastName, computed in the mapper
+        String loanAccountId,    // nested — comes from entity.getLoanAccount().getLoanAccountId()
 
+        String loanType,
         BigDecimal disbursementAmount,
         BigDecimal totalRepaymentAmount,
         BigDecimal outstandingBalance,

@@ -1,35 +1,54 @@
-feat(dto): add request DTOs for loan operations, capital, and offline sync
+feat(dto): add response DTOs for loans, financials, sync, and audit
 
-Loan lifecycle:
-- WriteOffLoanRequest — trackingId + reason, writtenOffBy from JWT
-- RestructureLoanRequest — trackingId, newMaturityDate, reason;
-  recalculated fields (balance, totalAmountDue, etc.) excluded
-- RecordPaymentRequest — trackingId, amountPaid (BigDecimal),
-  paymentDate, paymentMethod, paymentReference
+Loan domain:
+- LoanResponse — full financial picture, borrowerName resolved via
+  second UserInfo lookup (loan_tracking has no name column)
+- PaymentResponse — includes trackingId for both nested and standalone
+  use, recordedByName resolved via second StaffAccount lookup
+- LoanStatusHistoryResponse — same enrichment pattern, changedByName
+  resolved server-side
 
-Capital management:
-- InjectCapitalRequest — amount, source, optional occurredAt
-  (device timestamp offline, server time online)
-- AllocateCapitalRequest — amount, occurredAt, remarks;
-  loanAccountId sourced from URL path, not body
-- CreateLoanAccountRequest — accountName only; capital and
-  officer assignment handled by dedicated endpoints
+Accounts and financials:
+- LoanAccountResponse — full portfolio metrics; assignedOfficerId/Name
+  read directly via @ManyToOne, no extra lookup needed
+- CompanyDashboardResponse — full CompanyAccount rollup, corrected
+  against actual entity (added totalAllocatedCapital,
+  totalDisbursedAmount, projectedRevenueOverdue,
+  capitalUtilisationRate)
+- LedgerEntryResponse — full component breakdown (principal/interest/
+  penalty/loss), recordedByName resolved server-side
+- RevenueProjectionResponse — pure calculation, no backing entity;
+  nested MonthlyProjection using YearMonth
 
-Offline sync:
-- SyncPayload — localId, entityType, flexible data map, occurredAt
-- SyncPushRequest — list of SyncPayload, deviceId/staffId from JWT
-- DeviceRegistrationRequest — deviceId, deviceName, platform
-- ConflictResolutionRequest — conflictId, resolution, nullable
-  resolvedData (required only when resolution == MANUAL)
+Borrower:
+- CreateBorrowerRequest — idNumber, fullName, phone, address;
+  createdAt/createdBy excluded (server/JWT-derived)
+- BorrowerResponse — lean identity view; richer aggregated detail
+  view (loan history, totals) deferred to a future
+  BorrowerDetailResponse if needed
 
-Auth:
-- LoginRequest — staffId, password
-- AuthResponse — staffId, role, token, firstName, lastName, expiresAt
+Audit and sync:
+- AuditLogResponse — corrected against actual StaffAuditLog entity
+  (added targetTable, targetId, ipAddress, previousValue, newValue;
+  removed invented description field)
+- SyncPullResponse — flexible per-entity-type payload + serverTime
+  anchor, mirrors SyncPushRequest
+- SyncPushResponse — accepted/rejected(reason)/conflicts + serverTime,
+  matches API spec shape
+- DeviceSessionResponse — staffId is a raw column (not a relationship),
+  staffName resolved via second lookup; platform field flagged as
+  missing from current DeviceSession entity
+- ConflictResponse — clientValue/serverValue kept as raw JSON strings;
+  staffId/resolvedBy kept as raw IDs (admin/technical review screen)
 
-New enums: PaymentMethod, DevicePlatform, EntityType
+All 15 response DTOs from the package tree are now complete.
 
-All actor-identity fields (writtenOffBy, recordedBy, staffId,
-deviceId) are deliberately excluded from request bodies and
-resolved server-side from JWT claims. Server-computed/derived
-fields (balances, counts, revenue metrics) excluded from create/
-update requests per the same pattern.
+Recurring patterns established this session:
+- "Enrich after mapping": entities storing only a staffId/idNumber
+  need a second repository lookup + mapper overload to surface a
+  display name (LoanMapper, PaymentMapper, LedgerMapper, etc.)
+- Direct relationship fields (@ManyToOne) need no extra lookup —
+  MapStruct traverses them directly (LoanAccountResponse,
+  AuditLogResponse)
+- Pure calculations with no backing entity get hand-built in the
+  service, no mapper at all (RevenueProjectionResponse)
