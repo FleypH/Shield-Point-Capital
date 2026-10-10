@@ -32,11 +32,15 @@ public class JwtUtil {
 
     public String generateToken(String staffId,
                                 String role,
-                                Integer tokenVersion) {
+                                Integer tokenVersion,
+                                String deviceID,
+                                String loanAccountId) {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         claims.put("tokenVersion", tokenVersion);
+        claims.put("deviceID", deviceID);
+        claims.put("loanAccountId", loanAccountId); // null for ADMIN/MANAGER/ACCOUNTANT
 
         return Jwts.builder()
             .subject(staffId)
@@ -71,6 +75,14 @@ public class JwtUtil {
 
     public Integer extractTokenVersion(String token) {
         return getClaims(token).get("tokenVersion", Integer.class);
+    }
+
+    public String extractDeviceID(String token) {
+        return getClaims(token).get("deviceID", String.class);
+    }
+
+    public String extractLoanAccountId(String token) {
+        return getClaims(token).get("loanAccountId", String.class);
     }
 
     // ─── Internal helper ─────────────────────────────────────────

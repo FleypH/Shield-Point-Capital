@@ -9,7 +9,7 @@ import com.shieldpointcapital.lrms.domain.enums.Role;
  * server. nationalId/phone/address arrive here already decrypted by
  * EncryptedStringConverter on entity load.
  */
-public record Staffresponse(
+public record StaffResponse(
     String staffId,
     String nationalId,
     String firstName,

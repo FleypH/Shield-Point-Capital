@@ -1,11 +1,12 @@
 package com.shieldpointcapital.lrms.dto.request;
 
-import com.shieldpointcapital.lrms.domain.enums.EntityType; // you'll need to define this enum: PAYMENT, BORROWER_UPDATE, etc.
+import java.time.LocalDateTime;
+import java.util.Map;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
-import java.util.Map;
+import com.shieldpointcapital.lrms.domain.enums.EntityType; // you'll need to define this enum: PAYMENT, BORROWER_UPDATE, etc.
 
 public record SyncPayload(
 
