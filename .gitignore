@@ -36,3 +36,8 @@ build/
 
 hs_err_pid*.log
 commit-message.txt
+
+debug.log
+replay_pid*.log
+hs_err_pid*.log
+commit-message.txt
