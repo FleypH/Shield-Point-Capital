@@ -33,3 +33,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+hs_err_pid*.log
+commit-message.txt
