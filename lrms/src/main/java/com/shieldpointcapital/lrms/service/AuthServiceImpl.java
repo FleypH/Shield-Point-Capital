@@ -38,7 +38,7 @@ public class AuthServiceImpl {
         
         // 1. find the account
         StaffAccount staff = staffAccountRepository.findByEmail(request.email())
-        .orElseThrow(() -> new RuntimeException("Staff not found"));
+        .orElseThrow(() -> new InvalidCredentialsException("Invalid Credentials"));
         
         // 2. Deactivatted accounts can't log in
         if (!staff.getIsActive()) {
@@ -47,7 +47,7 @@ public class AuthServiceImpl {
 
         // 3. Locked accounts can't log in (until lockedUntill passes)
         if (staff.getLockedUntil() !=  null && staff.getLockedUntil().isAfter(LocalDateTime.now())) {
-            throw new AccountLockedException("Account is Locked until" + staff.getLockedUntil());
+            throw new AccountLockedException("Account is Locked until " + staff.getLockedUntil());
         }
 
         // 4. Check password
@@ -65,9 +65,10 @@ public class AuthServiceImpl {
 
         // 5. Success: reset the failure counter and record the login
         staff.setFailedLoginCount((byte) 0);
-        staff.setLastLoginAt(null);
+        staff.setLockedUntil(null);
         staff.setLastLoginAt(LocalDateTime.now());
         staffAccountRepository.save(staff);
+        
 
         //6. Build the token and the response
         String loanAccountId = (staff.getLoanAccount() != null) ? staff.getLoanAccount().getLoanAccountId() : null;

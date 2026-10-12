@@ -5,15 +5,17 @@ import java.util.List;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.stereotype.Component;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import com.shieldpointcapital.lrms.domain.entity.StaffAccount;
 import com.shieldpointcapital.lrms.repository.StaffAccountRepository;
 
@@ -92,6 +94,13 @@ public class JwtAuthFilter extends OncePerRequestFilter{
                 return;
             }
 
+            //step 8 check if account is active
+            if (!staff.getIsActive()) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter().write("Account is deactivated");
+                return;
+            }
+
             //Step 9 check if account is locked
             if (staff.getLockedUntil() != null && staff.getLockedUntil().isAfter(java.time.LocalDateTime.now())){
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -104,8 +113,8 @@ public class JwtAuthFilter extends OncePerRequestFilter{
             // every subsequent piece of code in this request can now call SecurityContextHolder.getContext().setAuthentication(authentication);
             //to know who is making the request
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                staff, // the principal - the full staffAccount object
-                null, // credentials - null because token already verified
+                staff.getStaffId(),   // principal is now "STF-001", so getName() returns it
+                null,
                 List.of(new SimpleGrantedAuthority("ROLE_" + staff.getRole().name()))
             );
              
@@ -119,6 +128,19 @@ public class JwtAuthFilter extends OncePerRequestFilter{
 
         }
 
-    
+    // Runs before doFilterInternal. Returning true means "don't run this
+    // filter for this request", so a stale token on a public endpoint is ignored.
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        return path.equals("/api/v1/auth/login")
+                || path.equals("/api/v1/auth/request-password-reset")
+                || path.equals("/api/v1/auth/reset-password")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")
+                || path.equals("/actuator/health");
+    }
+        
 }
 

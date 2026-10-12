@@ -1,8 +1,7 @@
 package com.shieldpointcapital.lrms.security;
 
-import com.shieldpointcapital.lrms.domain.entity.StaffAccount;
-import com.shieldpointcapital.lrms.repository.StaffAccountRepository;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,7 +9,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.shieldpointcapital.lrms.domain.entity.StaffAccount;
+import com.shieldpointcapital.lrms.repository.StaffAccountRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

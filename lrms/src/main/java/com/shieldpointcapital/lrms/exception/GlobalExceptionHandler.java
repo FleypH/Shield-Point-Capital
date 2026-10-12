@@ -4,8 +4,11 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     // 404 Not Found
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
@@ -198,15 +202,37 @@ public class GlobalExceptionHandler {
         .body(response);
 
     }
+
+    // Thrown when the JSON body can't be read: malformed JSON, or a value that
+    // doesn't fit the field type (e.g. platform "S" is not IOS or ANDROID).
+    // This is the client's mistake, so it returns 400 instead of falling
+    // through to the 500 catch-all.
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException ex) {
+
+        return ResponseEntity
+        .status(HttpStatus.BAD_REQUEST)
+        .body(ErrorResponse.builder()
+            .status(400)
+            .error("Bad Request")
+            .message("Malformed request body or invalid value. Check the field values and try again.")
+            .timestamp(LocalDateTime.now())
+            .build()
+        );
+    }
     
     // ─── 500 Internal Server Error ───────────────────────────────
 
     // Catches any unexpected exception not handled above
     // Last line of defence — should never be reached
-    // if all exceptions are properly handled above
+    // if all exceptions are properly handled 
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
 
+        // Without this line the real cause is swallowed and you only
+        // see the generic "unexpected error" message in Swagger.
+        log.error("Unexpected error", ex);
         return ResponseEntity
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(ErrorResponse.builder()
