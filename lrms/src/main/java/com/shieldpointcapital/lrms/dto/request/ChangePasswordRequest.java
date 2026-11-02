@@ -14,7 +14,7 @@ import jakarta.validation.constraints.Size;
  * Either path must increment token_version to invalidate existing sessions.
  */
 
-public record PasswordResetRequest(
+public record ChangePasswordRequest(
 
     //Null when an ADMIN is forcing a reset for someone else
     String currentPassword,

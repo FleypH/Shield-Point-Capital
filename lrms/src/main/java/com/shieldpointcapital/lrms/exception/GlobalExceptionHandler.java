@@ -180,6 +180,19 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex) {
+
+        return ResponseEntity
+        .status(HttpStatus.BAD_REQUEST)
+        .body(ErrorResponse.builder()
+            .status(400)
+            .error("Bad Request")
+            .message(ex.getMessage())
+            .timestamp(LocalDateTime.now())
+            .build()
+        );
+    }
     //Catches @valid annotation failures on request bodies
     //return all validation errors at once
     @ExceptionHandler(MethodArgumentNotValidException.class)

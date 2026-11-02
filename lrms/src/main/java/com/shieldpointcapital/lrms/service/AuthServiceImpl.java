@@ -8,9 +8,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.shieldpointcapital.lrms.domain.entity.StaffAccount;
+import com.shieldpointcapital.lrms.dto.request.ChangePasswordRequest;
 import com.shieldpointcapital.lrms.dto.request.LoginRequest;
 import com.shieldpointcapital.lrms.dto.response.AuthResponse;
 import com.shieldpointcapital.lrms.exception.AccountLockedException;
+import com.shieldpointcapital.lrms.exception.BadRequestException;
 import com.shieldpointcapital.lrms.exception.InvalidCredentialsException;
 import com.shieldpointcapital.lrms.exception.ResourceNotFoundException;
 import com.shieldpointcapital.lrms.exception.UnauthorizedActionException;
@@ -19,7 +21,7 @@ import com.shieldpointcapital.lrms.security.JwtUtil;
 
 
 @Service
-public class AuthServiceImpl {
+public class AuthServiceImpl implements AuthService{
     private final StaffAccountRepository staffAccountRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -34,6 +36,7 @@ public class AuthServiceImpl {
 
     }
 
+    @Override
     public AuthResponse login(LoginRequest request) {
         
         // 1. find the account
@@ -94,6 +97,7 @@ public class AuthServiceImpl {
 
     }
 
+    @Override
     @SuppressWarnings("null")
     public void logout() {
 
@@ -107,6 +111,32 @@ public class AuthServiceImpl {
        /*auditService.log(staffId, ActionType.LOGOUT, null, null, null, null, null);*/
     }
     
+    @Override 
+    @SuppressWarnings("null")
+    public void changePassword(String staffId, ChangePasswordRequest request) {
 
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            throw new BadRequestException("Passwords do not match");
+        }
 
+        StaffAccount staff = staffAccountRepository.findById(staffId)
+        .orElseThrow(() -> new ResourceNotFoundException("Staff not found"));
+
+        if (!passwordEncoder.matches(request.currentPassword(), staff.getPasswordHash())) {
+            throw new BadRequestException("Current password is incorrect");
+        }
+        
+        if (passwordEncoder.matches(request.newPassword(), staff.getPasswordHash())) {
+            throw new BadRequestException("New password must be different from the current password");
+        }
+
+        staff.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        staff.setTokenVersion(staff.getTokenVersion() + 1);
+        staff.setPasswordResetToken(null);
+        staff.setTokenExpiresAt(null);
+        staff.setUpdatedAt(LocalDateTime.now());
+        staff.setUpdatedBy(staffId);
+
+        staffAccountRepository.save(staff);
+    }
 }
