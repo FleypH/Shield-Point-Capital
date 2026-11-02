@@ -46,3 +46,6 @@ debug.log
 replay_pid*.log
 hs_err_pid*.log
 commit-message.txt
+
+hs_err_pid*.log
+target/
