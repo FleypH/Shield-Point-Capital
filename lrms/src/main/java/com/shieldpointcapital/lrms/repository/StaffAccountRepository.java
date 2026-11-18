@@ -15,6 +15,7 @@ public interface StaffAccountRepository extends JpaRepository<StaffAccount, Stri
     boolean existsByEmail(String email);
     boolean existsByNationalId(String NationalId);
     boolean existsByPhoneNumber(String phoneNumber);
+    boolean existsByStaffId(String staffId);
 
     List<StaffAccount> findByRole(Role role);
     List<StaffAccount> findByIsActiveTrue();

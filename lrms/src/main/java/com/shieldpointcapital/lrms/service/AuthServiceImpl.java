@@ -11,6 +11,9 @@ import com.shieldpointcapital.lrms.domain.entity.StaffAccount;
 import com.shieldpointcapital.lrms.dto.request.ChangePasswordRequest;
 import com.shieldpointcapital.lrms.dto.request.LoginRequest;
 import com.shieldpointcapital.lrms.dto.response.AuthResponse;
+import com.shieldpointcapital.lrms.dto.request.ResetPasswordRequest;
+import com.shieldpointcapital.lrms.dto.request.ForgotPasswordRequest;
+
 import com.shieldpointcapital.lrms.exception.AccountLockedException;
 import com.shieldpointcapital.lrms.exception.BadRequestException;
 import com.shieldpointcapital.lrms.exception.InvalidCredentialsException;
@@ -19,12 +22,27 @@ import com.shieldpointcapital.lrms.exception.UnauthorizedActionException;
 import com.shieldpointcapital.lrms.repository.StaffAccountRepository;
 import com.shieldpointcapital.lrms.security.JwtUtil;
 
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.HexFormat;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @Service
 public class AuthServiceImpl implements AuthService{
     private final StaffAccountRepository staffAccountRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final int RESET_TOKEN_MINUTES= 15;
 
     @Value("${app.jwt.expiration}")
     private long jwtExpiration;
@@ -138,5 +156,66 @@ public class AuthServiceImpl implements AuthService{
         staff.setUpdatedBy(staffId);
 
         staffAccountRepository.save(staff);
+    }
+
+    @Override
+    public void requestPasswordReset(ForgotPasswordRequest request) {
+    
+        StaffAccount staff = staffAccountRepository.findByEmail(request.email()).orElse(null);
+
+        if (staff == null || !staff.getIsActive()) {
+            return;
+        }
+
+        byte[] randomBytes = new byte[32];
+        SECURE_RANDOM.nextBytes(randomBytes);
+        String rawToken = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+
+        staff.setPasswordResetToken(hashToken(rawToken));
+        staff.setTokenExpiresAt(LocalDateTime.now().plusMinutes(RESET_TOKEN_MINUTES));
+        staff.setUpdatedAt(LocalDateTime.now());
+        staff.setUpdatedBy(staff.getStaffId());
+        staffAccountRepository.save(staff);
+
+        // DEV ONLY: there is no email service yet, so the raw token goes to the log.
+        // Remove this line (or gate it by profile) before production.
+        log.info("Password reset token generated for staff {}: {}", staff.getEmail(), rawToken);
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            throw new BadRequestException("Passwords do not match");
+        }
+
+        StaffAccount staff = staffAccountRepository
+                .findByPasswordResetToken(hashToken(request.token()))
+                .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
+
+        if (staff.getTokenExpiresAt() == null || staff.getTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Invalid or expired reset token");
+        }
+
+        staff.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        staff.setTokenVersion(staff.getTokenVersion() + 1);
+        staff.setFailedLoginCount((byte) 0);
+        staff.setLockedUntil(null);
+        staff.setPasswordResetToken(null);
+        staff.setTokenExpiresAt(null);
+        staff.setUpdatedAt(LocalDateTime.now());
+        staff.setUpdatedBy(staff.getStaffId());
+
+        staffAccountRepository.save(staff);
+    }
+
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is not available", e);
+        }
     }
 }
